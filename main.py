@@ -178,6 +178,9 @@ else:
 	print('WRITE MODE')
 	if file != None:
 		print('Reading from :', file)
+		f = open(file, 'r')
+		text = f.read()
+		print(text)
 	elif text != None:
 		print('Inserting :', text)
 	else:
