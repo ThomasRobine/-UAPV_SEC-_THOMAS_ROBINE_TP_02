@@ -3,7 +3,10 @@
 
 ## Imports 
 
+import sys
 import argparse
+import subprocess
+from subprocess import Popen as popen
 from pypng.code import png as png
 
 ## Delimiter
@@ -113,7 +116,7 @@ def from3DTo2D(pixels):
 	return matrix
 
 def saveImage(width, height, pixels, info, name):
-	''' (int, int, list of list of list of int, dictionary, string) -> None
+	''' (int, int, list of list of list of int, dictionary, string) -> NoneType
 
 	>>> saveImage(image_width, image_height, mmodified_pixels, image_info, "modified_"+image)
 	'''
@@ -171,23 +174,23 @@ file = args.file
 text = args.text
 
 if mode == None or mode == "read" or mode == 'r':
-	print('READ MODE')
 	image_width, image_height, pixels, image_info = loadImage(image)
-	print(decryptMessage(pixels))
+	sys.stdout.write(decryptMessage(pixels)+"\n")
+	#sp = popen(["python3", "main.py", "-png", image, "-m", mode], stdout = subprocess.PIPE)
+	#output = sp.communicate()
+	#sys.stdout.write(output)
+	#sp.stdout.close()
 else:
-	print('WRITE MODE')
 	if file != None:
-		print('Reading from :', file)
 		f = open(file, 'r')
 		text = f.read()
 		print(text)
-	elif text != None:
-		print('Inserting :', text)
-	else:
+	elif text == None:
 		text = input('Text to insert :')
-	image_width, image_height, pixels, image_info = loadImage(image)
-	if sanityCheck(image_width, image_height, text):
-		text += delimiter
-		text_bytes = stringToBinary(text)
-		modified_pixels = encryptMessage(text_bytes, pixels)
-		saveImage(image_width, image_height, modified_pixels, image_info, "modified_"+image)
+	else:
+		image_width, image_height, pixels, image_info = loadImage(image)
+		if sanityCheck(image_width, image_height, text):
+			text += delimiter
+			text_bytes = stringToBinary(text)
+			modified_pixels = encryptMessage(text_bytes, pixels)
+			saveImage(image_width, image_height, modified_pixels, image_info, "modified_"+image)
