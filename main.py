@@ -69,16 +69,7 @@ def intToBinary(pixel_values):
 	'''
 	return [format(i, "08b") for i in pixel_values]
 
-def convertToString(binary_message):
-	all_bytes = [binary_message[i: i+8] for i in range(0, len(binary_message), 8)]
-	string_message = ""
-	for byte in all_bytes:
-		string_message += chr(int(byte, 2))
-		if string_message[-5:] == delimiter: #check if we have reached the delimeter
-			break
-	return string_message[:-5] #remove the delimiter to show the original hidden message
-
-def write(binary_message, pixels):
+def encryptMessage(binary_message, pixels):
 	''' (list of binaries, list of list of list of int) -> list of list of list of int
 
 	>>> write(0110100001100101011011000110110001101111001000010010001100100011001000110010001100100011, [[[15, 27, 32, 63], ..., [154, 254, 0, 13]], ..., 
@@ -133,8 +124,36 @@ def saveImage(width, height, pixels, info, name):
 	writer.write(file, pixels2D)
 	file.close()
 
+def binaryToString(octets):
+	''' (list of characters) -> String
 
+	>>> binaryToString(['11111111', '01010100'])
+	Hello
+	'''
+	string_message = ""
+	for byte in octets:
+		string_message += chr(int(byte, 2))
+		if string_message[-5:] == delimiter: #check if we have reached the delimeter
+			break
+	return string_message[:-5] #remove the delimiter to show the original hidden message
 
+def decryptMessage(pixels):
+	''' (list of list of list of int) -> String
+
+	>>> decryptMessage([[[15, 27, 32, 63], ..., [154, 254, 0, 13]], ..., [[14, 27, 65, 98], ..., [154, 67, 198, 203]]])
+	Hello!
+	'''
+	binary_message = ""
+	for row in pixels:
+		for pixel_values in row:
+			r, g, b, a = intToBinary(pixel_values)
+			binary_message += r[-1]
+			binary_message += g[-1]
+			binary_message += b[-1]
+			binary_message += a[-1]
+	octets = [binary_message[i: i+8] for i in range(0, len(binary_message), 8)]
+	return binaryToString(octets)
+	
 ## Main
 
 parser = argparse.ArgumentParser()
@@ -152,21 +171,20 @@ file = args.file
 text = args.text
 
 if mode == None or mode == "read" or mode == 'r':
-	print('mode : read mode')
-	print('image :', image)
+	print('READ MODE')
+	image_width, image_height, pixels, image_info = loadImage(image)
+	print(decryptMessage(pixels))
 else:
-	print('mode : write mode')
-	print('image : ', image)
+	print('WRITE MODE')
 	if file != None:
 		print('Reading from :', file)
 	elif text != None:
 		print('Inserting :', text)
 	else:
 		text = input('Text to insert :')
-		print('text :', text)
 	image_width, image_height, pixels, image_info = loadImage(image)
 	if sanityCheck(image_width, image_height, text):
 		text += delimiter
 		text_bytes = stringToBinary(text)
-		modified_pixels = write(text_bytes, pixels)
+		modified_pixels = encryptMessage(text_bytes, pixels)
 		saveImage(image_width, image_height, modified_pixels, image_info, "modified_"+image)
