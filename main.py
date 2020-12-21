@@ -3,7 +3,7 @@
 
 ## Imports 
 
-import sys
+import os
 import argparse
 import subprocess
 from subprocess import Popen as popen
@@ -120,9 +120,12 @@ def saveImage(width, height, pixels, info, name):
 
 	>>> saveImage(image_width, image_height, mmodified_pixels, image_info, "modified_"+image)
 	'''
+	useful_info = ['greyscale', 'alpha', 'planes', 'bitdepth', 'interlace', 'size', 'gamma']
+	keywords = {key: info[key] for key in useful_info if key in info}
 	pixels2D = from3DTo2D(pixels)
-	writer = png.Writer(width, height, greyscale = info['greyscale'], alpha = info['alpha'], planes = info['planes'], 
-		bitdepth = info['bitdepth'], interlace = info['interlace'], size = info['size'], gamma = info['gamma'])
+	writer = png.Writer(width, height, **keywords)
+	filename, extension = os.path.splitext(name)
+	name = filename+"_modified"+extension
 	file = open(name, 'wb')
 	writer.write(file, pixels2D)
 	file.close()
@@ -175,11 +178,7 @@ text = args.text
 
 if mode == None or mode == "read" or mode == 'r':
 	image_width, image_height, pixels, image_info = loadImage(image)
-	sys.stdout.write(decryptMessage(pixels)+"\n")
-	#sp = popen(["python3", "main.py", "-png", image, "-m", mode], stdout = subprocess.PIPE)
-	#output = sp.communicate()
-	#sys.stdout.write(output)
-	#sp.stdout.close()
+	print(decryptMessage(pixels))
 else:
 	if file != None:
 		f = open(file, 'r')
@@ -187,10 +186,9 @@ else:
 		print(text)
 	elif text == None:
 		text = input('Text to insert :')
-	else:
-		image_width, image_height, pixels, image_info = loadImage(image)
-		if sanityCheck(image_width, image_height, text):
-			text += delimiter
-			text_bytes = stringToBinary(text)
-			modified_pixels = encryptMessage(text_bytes, pixels)
-			saveImage(image_width, image_height, modified_pixels, image_info, "modified_"+image)
+	image_width, image_height, pixels, image_info = loadImage(image)
+	if sanityCheck(image_width, image_height, text):
+		text += delimiter
+		text_bytes = stringToBinary(text)
+		modified_pixels = encryptMessage(text_bytes, pixels)
+		saveImage(image_width, image_height, modified_pixels, image_info, image)
