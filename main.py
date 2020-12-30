@@ -3,6 +3,7 @@
 
 ## Imports 
 
+import sys
 import os
 import argparse
 import subprocess
@@ -139,9 +140,9 @@ def binaryToString(octets):
 	string_message = ""
 	for byte in octets:
 		string_message += chr(int(byte, 2))
-		if string_message[-5:] == delimiter: #check if we have reached the delimeter
+		if string_message[-len(delimiter):] == delimiter: #check if we have reached the delimeter
 			break
-	return string_message[:-5] #remove the delimiter to show the original hidden message
+	return string_message[:-len(delimiter)] #remove the delimiter to show the original hidden message
 
 def decryptMessage(pixels):
 	''' (list of list of list of int) -> String
@@ -178,7 +179,9 @@ text = args.text
 
 if mode == None or mode == "read" or mode == 'r':
 	image_width, image_height, pixels, image_info = loadImage(image)
-	print(decryptMessage(pixels))
+	sp = popen('strings', shell = True, stdout = subprocess.PIPE)
+	sys.stdout.write(decryptMessage(pixels)+"\n")
+	sys.stdout.close()
 else:
 	if file != None:
 		f = open(file, 'r')
@@ -192,3 +195,5 @@ else:
 		text_bytes = stringToBinary(text)
 		modified_pixels = encryptMessage(text_bytes, pixels)
 		saveImage(image_width, image_height, modified_pixels, image_info, image)
+	else:
+		exit("The message can't fit in the image")
