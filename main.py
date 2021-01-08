@@ -166,7 +166,7 @@ def decryptMessage(pixels):
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = 'Hide a text into a png file or read text from a png file')
-	parser.add_argument('-png', dest = 'image', required = True, help = 'png file path, mandatory')
+	parser.add_argument('image', help = 'png file path, mandatory')
 	parser.add_argument('-w', dest = 'write', action = 'store_true', help = 'switch to enable write mode. If not specified, default mode will be set on read mode')
 	parser.add_argument('-f', dest = 'file', help = 'Read text from file. If neither [-f] nor [-t] are specified, the text will be read from terminal entry')
 	parser.add_argument('-t', dest = 'text', help = 'Read text from arguments. If neither [-f] nor [-t] are specified, the text will be read from terminal entry')
