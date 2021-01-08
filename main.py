@@ -163,37 +163,36 @@ def decryptMessage(pixels):
 	
 ## Main
 
-parser = argparse.ArgumentParser()
+if __name__ == "__main__":
 
-parser.add_argument('-png', dest = 'image', required = True)
-parser.add_argument('-m', dest = 'mode', choices = ['read', 'r', 'write', 'w'])
-parser.add_argument('-f', dest = 'file')
-parser.add_argument('-t', dest = 'text')
+	parser = argparse.ArgumentParser(description = 'Hide a text into a png file or read text from a png file')
+	parser.add_argument('-png', dest = 'image', required = True, help = 'png file path, mandatory')
+	parser.add_argument('-w', dest = 'write', action = 'store_true', help = 'switch to enable write mode. If not specified, default mode will be set on read mode')
+	parser.add_argument('-f', dest = 'file', help = 'Read text from file. If neither [-f] nor [-t] are specified, the text will be read from terminal entry')
+	parser.add_argument('-t', dest = 'text', help = 'Read text from arguments. If neither [-f] nor [-t] are specified, the text will be read from terminal entry')
+	args = parser.parse_args()
 
-args = parser.parse_args()
-
-mode = args.mode
-image = args.image
-file = args.file
-text = args.text
-
-if mode == None or mode == "read" or mode == 'r':
-	image_width, image_height, pixels, image_info = loadImage(image)
-	sp = popen('strings', shell = True, stdout = subprocess.PIPE)
-	sys.stdout.write(decryptMessage(pixels)+"\n")
-	sys.stdout.close()
-else:
-	if file != None:
-		f = open(file, 'r')
-		text = f.read()
-		print(text)
-	elif text == None:
-		text = input('Text to insert :')
-	image_width, image_height, pixels, image_info = loadImage(image)
-	if sanityCheck(image_width, image_height, text):
-		text += delimiter
-		text_bytes = stringToBinary(text)
-		modified_pixels = encryptMessage(text_bytes, pixels)
-		saveImage(image_width, image_height, modified_pixels, image_info, image)
+	if args.write != False:
+		text = ""
+		if args.file != None:
+			file = open(args.file, 'r')
+			text = file.read()
+			file.close()
+		elif args.text != None:
+			text = args.text
+		else:
+			text = input('Text to insert :')
+		image_width, image_height, pixels, image_info = loadImage(args.image)
+		if sanityCheck(image_width, image_height, text):
+			text += delimiter
+			text_bytes = stringToBinary(text)
+			modified_pixels = encryptMessage(text_bytes, pixels)
+			saveImage(image_width, image_height, modified_pixels, image_info, args.image)
+		else:
+			exit("The message can't fit in the image")
 	else:
-		exit("The message can't fit in the image")
+		image_width, image_height, pixels, image_info = loadImage(args.image)
+		sp = popen('strings', shell = True, stdout = subprocess.PIPE)
+		sys.stdout.write(decryptMessage(pixels)+"\n")
+		sys.stdout.close()
+		
